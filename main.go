@@ -41,6 +41,12 @@ type SmoothWeightedRR struct {
 	totalWeight int
 }
 
+func (s *SmoothWeightedRR) PICK() string {
+	ans := s.PICKN("1")
+
+	return ans[0]
+}
+
 func (s *SmoothWeightedRR) PICKN(n string) []string {
 	N, err := strconv.Atoi(n)
 	if err != nil {
@@ -68,7 +74,7 @@ func (s *SmoothWeightedRR) PICKN(n string) []string {
 
 func Max(in []int) int {
 	ans := -1000000000000
-	for i:= 0; i < len(in); i++ {
+	for i := 0; i < len(in); i++ {
 		if in[i] > ans {
 			ans = in[i]
 		}
@@ -127,7 +133,9 @@ func main() {
 		case "PICKN":
 			ans := swrr.PICKN(args[1])
 			fmt.Println(strings.Join(ans, ","))
-
+		case "PICK":
+			ans := swrr.PICK()
+			fmt.Println(ans)
 		default:
 			fmt.Println("wrong input:", args[0])
 		}
