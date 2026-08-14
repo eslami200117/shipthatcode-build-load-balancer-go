@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"slices"
 	"strconv"
 	"strings"
 )
@@ -48,8 +47,8 @@ func (s *SmoothWeightedRR) PICKN(n string) []string {
 		panic("Invalid argument for PICKN. Expected an integer.")
 	}
 	ans := make([]string, 0, N)
-	for range N {
-		p := slices.Max(s.current)
+	for i := 0; i < N; i++ {
+		p := Max(s.current)
 
 	InerLoop:
 		for j, key := range s.backends {
@@ -59,10 +58,20 @@ func (s *SmoothWeightedRR) PICKN(n string) []string {
 				break InerLoop
 			}
 		}
-		for j := range len(s.current) {
+		for j := 0; j < len(s.current); j++ {
 			s.current[j] += s.weights[j]
 		}
 
+	}
+	return ans
+}
+
+func Max(in []int) int {
+	ans := -1000000000000
+	for i:= 0; i < len(in); i++ {
+		if in[i] > ans {
+			ans = in[i]
+		}
 	}
 	return ans
 }

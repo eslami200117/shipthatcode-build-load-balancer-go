@@ -1,3 +1,3 @@
 module build_load_balancer
 
-go 1.26.5
+go 1.13.5
