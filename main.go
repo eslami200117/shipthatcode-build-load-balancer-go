@@ -63,13 +63,13 @@ func NewHealthy(backends []string) *Healthy {
 
 
 func main() {
-	file, err := os.Open("tests/05-health-checks/3.in")
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
-	sc := bufio.NewScanner(file)
-	// sc := bufio.NewScanner(os.Stdin)
+	// file, err := os.Open("tests/05-health-checks/3.in")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer file.Close()
+	// sc := bufio.NewScanner(file)
+	sc := bufio.NewScanner(os.Stdin)
 	sc.Buffer(make([]byte, 1024*1024), 1024*1024)
 	var lb *Healthy
 	for sc.Scan() {
