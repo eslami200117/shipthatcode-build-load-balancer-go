@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -49,6 +50,7 @@ func NewP2C(backends []string) *P2C {
 }
 
 func (p *P2C) Status() {
+	sort.Strings(p.backends)
 	for _, key := range p.backends {
 		fmt.Printf("%s:%d\n", key, p.m[key])
 	}
