@@ -58,16 +58,19 @@ func (p *P2C) Status() {
 
 func (p *P2C) Done(b string) {
 	p.m[b] -= 1
+	if p.m[b] < 0 {
+		p.m[b] = 0
+	}
 }
 
 func main() {
-	// file, err := os.Open("tests/04-power-of-two/4.in")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer file.Close()
-	// sc := bufio.NewScanner(file)
-	sc := bufio.NewScanner(os.Stdin)
+	file, err := os.Open("tests/04-power-of-two/4.in")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	sc := bufio.NewScanner(file)
+	// sc := bufio.NewScanner(os.Stdin)
 	sc.Buffer(make([]byte, 1024*1024), 1024*1024)
 	var lb *P2C
 	for sc.Scan() {
