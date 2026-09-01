@@ -1,6 +1,9 @@
 package load_balancer
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+)
 
 type P2C struct {
 	m        map[string]int
@@ -44,6 +47,7 @@ func NewP2C(backends []string) *P2C {
 }
 
 func (p *P2C) Status() {
+	sort.Strings(p.backends)
 	for _, key := range p.backends {
 		fmt.Printf("%s:%d\n", key, p.m[key])
 	}
@@ -51,4 +55,7 @@ func (p *P2C) Status() {
 
 func (p *P2C) Done(b string) {
 	p.m[b] -= 1
+	if p.m[b] < 0 {
+		p.m[b] = 0
+	}
 }
