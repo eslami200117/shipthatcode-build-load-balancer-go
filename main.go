@@ -44,8 +44,11 @@ func (h *Healthy) Healthy() {
 			ups = append(ups, b)
 		}
 	}
-
-	fmt.Println(strings.Join(ups, ","))
+	if len(ups) != 0 {
+		fmt.Println(strings.Join(ups, ","))
+	} else {
+		fmt.Println("none")
+	}
 }
 
 func NewHealthy(backends []string) *Healthy {
