@@ -54,6 +54,9 @@ func (p *P2C) Status() {
 	}
 }
 
+func (p *P2C) Done(b string) {
+	p.m[b] -= 1
+}
 
 func main() {
 	// file, err := os.Open("tests/04-power-of-two/4.in")
@@ -81,6 +84,9 @@ func main() {
 		case "PICK":
 			ans := lb.Pick(args[1], args[2])
 			fmt.Println(ans)
+		case "DONE":
+			lb.Done(args[1])
+			fmt.Println("OK")
 		case "STATUS":
 			lb.Status()
 		default:

@@ -48,3 +48,7 @@ func (p *P2C) Status() {
 		fmt.Printf("%s:%d\n", key, p.m[key])
 	}
 }
+
+func (p *P2C) Done(b string) {
+	p.m[b] -= 1
+}
