@@ -1,12 +1,9 @@
-package main
+package load_balancer
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"strings"
 )
-
 
 type Healthy struct {
 	backends    []string
@@ -58,43 +55,5 @@ func NewHealthy(backends []string) *Healthy {
 		succ_streak: make(map[string]int),
 		fail_streak: make(map[string]int),
 		state:       s,
-	}
-}
-
-
-func main() {
-	file, err := os.Open("tests/05-health-checks/3.in")
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
-	sc := bufio.NewScanner(file)
-	// sc := bufio.NewScanner(os.Stdin)
-	sc.Buffer(make([]byte, 1024*1024), 1024*1024)
-	var lb *Healthy
-	for sc.Scan() {
-		if sc.Err() != nil{
-			panic("error in scaning")
-		}
-		line := sc.Text()
-		if line == "" {
-			continue
-		}
-		args := strings.Split(line, " ")
-		switch args[0] {
-		case "POOL":
-			lb = NewHealthy(args[1:])
-			fmt.Println("OK")
-		case "REPORT":
-			ok := args[2]=="OK"
-			lb.Report(args[1], ok)
-			fmt.Println("OK")
-		case "HEALTHY":
-			lb.Healthy()
-		case "STATUS":
-			lb.Status()
-		default:
-			fmt.Println("wrong input:", args[0])
-		}
 	}
 }
