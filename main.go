@@ -11,6 +11,7 @@ type Healthy struct {
 	backends    []string
 	succ_streak map[string]int
 	fail_streak map[string]int
+	pass_streak map[string]int
 	state       map[string]string
 }
 
@@ -50,6 +51,24 @@ func (h *Healthy) Healthy() {
 	}
 }
 
+func (h *Healthy) Observe(backend, status string) {
+	ok := true
+	if status[0] == '5' || status[0] == '0' {
+		ok = false
+	}
+	if ok {
+		h.pass_streak[backend] = 0
+		if h.state[backend] == "DOWN" {
+			h.state[backend] = "UP"
+		}
+	} else {
+		h.pass_streak[backend] += 1
+		if h.state[backend] == "UP" && h.pass_streak[backend] >= 3 {
+			h.state[backend] = "DOWN"
+		}
+	}
+}
+
 func NewHealthy(backends []string) *Healthy {
 	s := make(map[string]string)
 	for _, b := range backends {
@@ -59,12 +78,13 @@ func NewHealthy(backends []string) *Healthy {
 		backends:    backends,
 		succ_streak: make(map[string]int),
 		fail_streak: make(map[string]int),
+		pass_streak: make(map[string]int),
 		state:       s,
 	}
 }
 
 func main() {
-	// file, err := os.Open("tests/05-health-checks/3.in")
+	// file, err := os.Open("tests/06-passive-health/4.in")
 	// if err != nil {
 	// 	panic(err)
 	// }
@@ -86,9 +106,12 @@ func main() {
 		case "POOL":
 			lb = NewHealthy(args[1:])
 			fmt.Println("OK")
-		case "REPORT":
+		case "PROBE":
 			ok := args[2] == "OK"
 			lb.Report(args[1], ok)
+			fmt.Println("OK")
+		case "OBSERVE":
+			lb.Observe(args[1], args[2])
 			fmt.Println("OK")
 		case "HEALTHY":
 			lb.Healthy()

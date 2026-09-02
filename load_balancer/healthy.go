@@ -42,11 +42,28 @@ func (h *Healthy) Healthy() {
 			ups = append(ups, b)
 		}
 	}
-
 	if len(ups) != 0 {
 		fmt.Println(strings.Join(ups, ","))
 	} else {
 		fmt.Println("none")
+	}
+}
+
+func (h *Healthy) Observe(backend, status string) {
+	ok := true
+	if status[0] == '5' || status[0] == '0' {
+		ok = false
+	}
+	if ok {
+		h.pass_streak[backend] = 0
+		if h.state[backend] == "DOWN" {
+			h.state[backend] = "UP"
+		}
+	} else {
+		h.pass_streak[backend] += 1
+		if h.state[backend] == "UP" && h.pass_streak[backend] >= 3 {
+			h.state[backend] = "DOWN"
+		}
 	}
 }
 
@@ -59,6 +76,7 @@ func NewHealthy(backends []string) *Healthy {
 		backends:    backends,
 		succ_streak: make(map[string]int),
 		fail_streak: make(map[string]int),
+		pass_streak: make(map[string]int),
 		state:       s,
 	}
 }
