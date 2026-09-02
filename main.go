@@ -13,7 +13,7 @@ type CBStatus string
 const (
 	OPEN      CBStatus = "OPEN"
 	HALF_OPEN CBStatus = "HALF_OPEN"
-	CLOSE     CBStatus = "CLOSE"
+	CLOSE     CBStatus = "CLOSED"
 )
 
 type CBInfo struct {
