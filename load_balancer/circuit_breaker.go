@@ -1,11 +1,8 @@
-package main
+package load_balancer
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"strconv"
-	"strings"
 )
 
 type CBStatus string
@@ -93,43 +90,5 @@ func NewCB(backends []string) *CicuitBreaker {
 	return &CicuitBreaker{
 		backends: backends,
 		states:   states,
-	}
-}
-
-func main() {
-	// file, err := os.Open("tests/07-circuit-breaker/4.in")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer file.Close()
-	// sc := bufio.NewScanner(file)
-	sc := bufio.NewScanner(os.Stdin)
-	sc.Buffer(make([]byte, 1024*1024), 1024*1024)
-	var lb *CicuitBreaker
-	for sc.Scan() {
-		if sc.Err() != nil {
-			panic("error in scaning")
-		}
-		line := sc.Text()
-		if line == "" {
-			continue
-		}
-		args := strings.Split(line, " ")
-		switch args[0] {
-		case "POOL":
-			lb = NewCB(args[1:])
-			fmt.Println("OK")
-		case "CALL":
-			ok := args[2] == "OK"
-			res := lb.Call(args[1], ok)
-			fmt.Println(res)
-		case "NOW":
-			lb.Now(args[1])
-			fmt.Println("OK")
-		case "STATUS":
-			lb.Status()
-		default:
-			fmt.Println("wrong input:", args[0])
-		}
 	}
 }
