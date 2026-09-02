@@ -70,7 +70,7 @@ func (c *CicuitBreaker) Call(b string, ok bool) string {
 			}
 			return "OK"
 		case OPEN:
-			return "OK"
+			return "SHORT"
 		default:
 			return "OK"
 		}

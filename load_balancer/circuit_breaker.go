@@ -10,7 +10,7 @@ type CBStatus string
 const (
 	OPEN      CBStatus = "OPEN"
 	HALF_OPEN CBStatus = "HALF_OPEN"
-	CLOSE     CBStatus = "CLOSE"
+	CLOSE     CBStatus = "CLOSED"
 )
 
 type CBInfo struct {
@@ -67,7 +67,7 @@ func (c *CicuitBreaker) Call(b string, ok bool) string {
 			}
 			return "OK"
 		case OPEN:
-			return "OK"
+			return "SHORT"
 		default:
 			return "OK"
 		}
