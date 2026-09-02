@@ -9,6 +9,7 @@ type Healthy struct {
 	backends    []string
 	succ_streak map[string]int
 	fail_streak map[string]int
+	pass_streak map[string]int
 	state       map[string]string
 }
 

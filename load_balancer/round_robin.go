@@ -1,6 +1,5 @@
 package load_balancer
 
-
 type RoundRobin struct {
 	backands []string
 	index    int

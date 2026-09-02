@@ -65,10 +65,10 @@ func (pq *PriorityQueue) update(item *Item, value int) {
 
 // MinHeap combines dictionary and heap functionality
 type MinHeap struct {
-	pq    PriorityQueue
-	items map[string]*Item
-	order int // insertion order counter
-	insertionSeq []string       // keeps track of insertion order
+	pq           PriorityQueue
+	items        map[string]*Item
+	order        int      // insertion order counter
+	insertionSeq []string // keeps track of insertion order
 }
 
 // NewMinHeap creates a new MinHeap
@@ -110,8 +110,6 @@ func (mh *MinHeap) Add(key string, delta int) bool {
 	return false
 }
 
-
-
 // GetMin returns the key with the minimum value (without removing)
 func (mh *MinHeap) GetMin() (string, int, bool) {
 	if len(mh.pq) == 0 {
@@ -144,7 +142,6 @@ func (mh *MinHeap) Size() int {
 	return len(mh.pq)
 }
 
-
 // GetAllOrdered returns all items in original insertion order (more efficient)
 func (mh *MinHeap) GetAllOrdered() []struct {
 	Key   string
@@ -154,7 +151,7 @@ func (mh *MinHeap) GetAllOrdered() []struct {
 		Key   string
 		Value int
 	}{}
-	
+
 	// Iterate over insertion sequence
 	for _, key := range mh.insertionSeq {
 		if item, exists := mh.items[key]; exists {

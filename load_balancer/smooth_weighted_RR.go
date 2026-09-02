@@ -5,7 +5,6 @@ import (
 	"strings"
 )
 
-
 type SmoothWeightedRR struct {
 	backends    []string
 	weights     []int
@@ -81,7 +80,6 @@ func NewSmoothWeightedRR(backends []string) *SmoothWeightedRR {
 		totalWeight: totalWeight,
 	}
 }
-
 
 func (s *SmoothWeightedRR) Rest() {
 	copy(s.current, s.weights)

@@ -30,7 +30,6 @@ func (l *LeastConnSel) Done(backend string) {
 	l.mh.Add(backend, -1)
 }
 
-
 func (l *LeastConnSel) Status() {
 	items := l.mh.GetAllOrdered()
 	for _, item := range items {

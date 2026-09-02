@@ -7,7 +7,6 @@ import (
 	"strings"
 )
 
-
 type Healthy struct {
 	backends    []string
 	succ_streak map[string]int
@@ -64,7 +63,6 @@ func NewHealthy(backends []string) *Healthy {
 	}
 }
 
-
 func main() {
 	// file, err := os.Open("tests/05-health-checks/3.in")
 	// if err != nil {
@@ -76,7 +74,7 @@ func main() {
 	sc.Buffer(make([]byte, 1024*1024), 1024*1024)
 	var lb *Healthy
 	for sc.Scan() {
-		if sc.Err() != nil{
+		if sc.Err() != nil {
 			panic("error in scaning")
 		}
 		line := sc.Text()
@@ -89,7 +87,7 @@ func main() {
 			lb = NewHealthy(args[1:])
 			fmt.Println("OK")
 		case "REPORT":
-			ok := args[2]=="OK"
+			ok := args[2] == "OK"
 			lb.Report(args[1], ok)
 			fmt.Println("OK")
 		case "HEALTHY":
