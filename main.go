@@ -159,6 +159,7 @@ func main() {
 			lb.Ring()
 		case "REMOVE":
 			lb.Remove(args[1])
+			fmt.Println("OK")
 		default:
 			fmt.Println("wrong input:", args[0])
 		}
