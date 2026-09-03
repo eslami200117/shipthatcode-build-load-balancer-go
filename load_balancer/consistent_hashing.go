@@ -1,12 +1,9 @@
-package main
+package load_balancer
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"sort"
 	"strconv"
-	"strings"
 )
 
 type ConsistentHashing struct {
@@ -76,52 +73,4 @@ func hashString(s string) int {
 		h = (h*31 + int(c)) % 1000
 	}
 	return h
-}
-
-func main() {
-	// var test int
-	// var err error
-	// if len(os.Args) < 2 {
-	// 	test = 2
-	// } else{
-	// 	test, err = strconv.Atoi(os.Args[1])
-	// 	if err != nil {
-	// 		panic("wrong arguman")
-	// 	}
-	// }
-
-	// file, err := os.Open(fmt.Sprintf("tests/08-consistent-hashing/%d.in", test))
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer file.Close()
-	// sc := bufio.NewScanner(file)
-	sc := bufio.NewScanner(os.Stdin)
-	sc.Buffer(make([]byte, 1024*1024), 1024*1024)
-	var lb *ConsistentHashing
-	for sc.Scan() {
-		if sc.Err() != nil {
-			panic("error in scaning")
-		}
-		line := sc.Text()
-		if line == "" {
-			continue
-		}
-		args := strings.Split(line, " ")
-		switch args[0] {
-		case "POOL":
-			lb = NewConsistentHashing(args[1:])
-			fmt.Println("OK")
-		case "ADD":
-			lb.Add(args[1])
-			fmt.Println("OK")
-		case "LOOKUP":
-			ans := lb.LookUp(args[1])
-			fmt.Println(ans)
-		case "RING":
-			lb.Ring()
-		default:
-			fmt.Println("wrong input:", args[0])
-		}
-	}
 }
