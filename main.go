@@ -84,69 +84,58 @@ func (l7 *L7) AddRoute(host, prefix, upStream string) {
 
 func (l7 *L7) L7_(host, path string) string {
 	// Get routes for this host
-	routes := l7.routesByHost[host]
-
-	// First try to find a match in host-specific routes (in reverse order for latest wins)
-	bestUpstream := ""
-	bestLen := 0
+	hostRoutes := l7.routesByHost[host]
 	
-	if len(routes) > 0 {
-		// Iterate in reverse order so newer routes override older ones
-		for i := len(routes) - 1; i >= 0; i-- {
-			route := routes[i]
-			prefix := route.prefix
-			
-			// Check if path starts with this prefix
-			if strings.HasPrefix(path, prefix) || prefix == "" {
-				length := len(prefix)
-				
-				// Exact match gets priority
-				if prefix == path {
-					length += 1000
-				}
-				
-				if length >= bestLen {
-					bestLen = length
-					bestUpstream = route.upStream
-				}
+	// First, find the best match among host-specific routes
+	bestHostUpstream := ""
+	bestHostLen := 0
+	
+	for i := len(hostRoutes) - 1; i >= 0; i-- {
+		route := hostRoutes[i]
+		prefix := route.prefix
+		
+		if strings.HasPrefix(path, prefix) || prefix == "" {
+			length := len(prefix)
+			if prefix == path {
+				length += 1000
+			}
+			if length >= bestHostLen {
+				bestHostLen = length
+				bestHostUpstream = route.upStream
 			}
 		}
-		
-		// If we found a match in host-specific routes, return it
-		if bestUpstream != "" {
-			return bestUpstream
-		}
 	}
-
-	// If no host-specific match found, try wildcard routes (in reverse order)
-	bestLen = 0
-	bestUpstream = ""
+	
+	// Find the best match among wildcard routes
+	bestWildcardUpstream := ""
+	bestWildcardLen := 0
 	
 	for i := len(l7.wildcardRoutes) - 1; i >= 0; i-- {
 		route := l7.wildcardRoutes[i]
 		prefix := route.prefix
 		
-		// Check if path starts with this prefix
 		if strings.HasPrefix(path, prefix) || prefix == "" {
 			length := len(prefix)
-			
-			// Exact match gets priority
 			if prefix == path {
 				length += 1000
 			}
-			
-			if length >= bestLen {
-				bestLen = length
-				bestUpstream = route.upStream
+			if length >= bestWildcardLen {
+				bestWildcardLen = length
+				bestWildcardUpstream = route.upStream
 			}
 		}
 	}
-
-	if bestUpstream == "" {
-		return l7.def
+	
+	// Choose the best match: host-specific wins only if it's more specific
+	if bestHostUpstream != "" && bestHostLen >= bestWildcardLen {
+		return bestHostUpstream
 	}
-
-	return bestUpstream
+	
+	if bestWildcardUpstream != "" {
+		return bestWildcardUpstream
+	}
+	
+	return l7.def
 }
 
 func main() {
