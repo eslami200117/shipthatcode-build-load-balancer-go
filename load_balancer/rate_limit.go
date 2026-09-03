@@ -3,6 +3,7 @@ package load_balancer
 import (
 	"fmt"
 	"math"
+	"strconv"
 )
 
 type RateLimit struct {
@@ -33,6 +34,7 @@ func (r *RateLimit) Now(str string) {
 	for _, info := range r.status {
 		elapse := nowRL - info.lastUpdate
 		info.token = math.Min(r.capacity, info.token+elapse)
+		info.lastUpdate = nowRL
 	}
 
 }

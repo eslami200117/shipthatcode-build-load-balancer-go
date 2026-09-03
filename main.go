@@ -37,6 +37,7 @@ func (r *RateLimit) Now(str string) {
 	for _, info := range r.status {
 		elapse := nowRL - info.lastUpdate
 		info.token = math.Min(r.capacity, info.token+elapse)
+		info.lastUpdate = nowRL
 	}
 
 }
@@ -65,24 +66,24 @@ func (r *RateLimit) Status(b string) {
 }
 
 func main() {
-	// var test int
-	// var err error
-	// if len(os.Args) < 2 {
-	// 	test = 2
-	// } else {
-	// 	test, err = strconv.Atoi(os.Args[1])
-	// 	if err != nil {
-	// 		panic("wrong arguman")
-	// 	}
-	// }
+	var test int
+	var err error
+	if len(os.Args) < 2 {
+		test = 2
+	} else {
+		test, err = strconv.Atoi(os.Args[1])
+		if err != nil {
+			panic("wrong arguman")
+		}
+	}
 
-	// file, err := os.Open(fmt.Sprintf("tests/10-rate-limiting/%d.in", test))
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer file.Close()
-	// sc := bufio.NewScanner(file)
-	sc := bufio.NewScanner(os.Stdin)
+	file, err := os.Open(fmt.Sprintf("tests/10-rate-limiting/%d.in", test))
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	sc := bufio.NewScanner(file)
+	// sc := bufio.NewScanner(os.Stdin)
 	sc.Buffer(make([]byte, 1024*1024), 1024*1024)
 	lb := NewRateLimit()
 	for sc.Scan() {
