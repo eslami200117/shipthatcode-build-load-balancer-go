@@ -4,114 +4,82 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"sort"
-	"strconv"
 	"strings"
 )
 
-type ConsistentHashing struct {
-	keys []int
-	vals map[int]string
+type RoundRobin struct {
+	backands []string
+	index    int
 }
 
-func NewConsistentHashing(backends []string) *ConsistentHashing {
-	ch := &ConsistentHashing{
-		vals: make(map[int]string),
-		keys: make([]int, 0),
-	}
-	ch.Add(backends)
-	return ch
-}
-
-// add with O(n) insertion maintaining sorted order
-func (ch *ConsistentHashing) add(key int, value string) {
-	if _, exists := ch.vals[key]; exists {
-		return
-	}
-
-	// Find insertion point using binary search
-	idx := sort.Search(len(ch.keys), func(i int) bool {
-		return ch.keys[i] >= key
-	})
-
-	// Insert at idx
-	ch.keys = append(ch.keys, 0)
-	copy(ch.keys[idx+1:], ch.keys[idx:])
-	ch.keys[idx] = key
-	ch.vals[key] = value
-}
-
-func (ch *ConsistentHashing) Add(bachends []string) {
-	for _, b := range bachends {
-		for j := 0; j < 5; j++ {
-			p := hashString(b + "#" + strconv.Itoa(j))
-			ch.add(p, b)
-		}
+func NewRoundRobin(backends []string) *RoundRobin {
+	return &RoundRobin{
+		backands: backends,
+		index:    0,
 	}
 }
 
-// LookUp finds the smallest key >= input key (successor with wrap-around)
-func (ch *ConsistentHashing) LookUp(p string) string {
-	if len(ch.keys) == 0 {
+func (r *RoundRobin) Pick() string {
+	if len(r.backands) == 0 {
 		return ""
 	}
-
-	key := hashString(p)
-
-	// Find first key >= input
-	idx := sort.Search(len(ch.keys), func(i int) bool {
-		return ch.keys[i] >= key
-	})
-
-	// If no key found, wrap around to first (smallest)
-	if idx == len(ch.keys) {
-		idx = 0
-	}
-
-	return ch.vals[ch.keys[idx]]
+	r.index = r.index % len(r.backands)
+	backend := r.backands[r.index]
+	r.index += 1
+	return backend
 }
 
-// Remove a backend (optional but good to have)
-func (ch *ConsistentHashing) Remove(b string) {
-	for j := 0; j < 5; j++ {
-		p := hashString(b + "#" + strconv.Itoa(j))
-		if _, exists := ch.vals[p]; exists {
-			delete(ch.vals, p)
-			// Remove from keys slice
-			idx := sort.Search(len(ch.keys), func(i int) bool {
-				return ch.keys[i] >= p
-			})
-			if idx < len(ch.keys) && ch.keys[idx] == p {
-				ch.keys = append(ch.keys[:idx], ch.keys[idx+1:]...)
+func (r *RoundRobin) Rest() {
+	r.index = 0
+}
+
+type CS struct {
+	rr            RoundRobin
+	state         map[string]string
+	stickedClient map[string]string
+}
+
+func NewCS(backends []string) *CS {
+	state := make(map[string]string)
+	stickedClient := make(map[string]string)
+	for _, b := range backends {
+		state[b] = "UP"
+	}
+	return &CS{
+		rr:            *NewRoundRobin(backends),
+		state:         state,
+		stickedClient: stickedClient,
+	}
+}
+
+func (c *CS) ChangeState(backends []string, state string) {
+	for _, b := range backends {
+		c.state[b] = state
+	}
+}
+
+func (c *CS) Rest() {
+	c.rr.Rest()
+}
+
+func (c *CS) Request(args []string) string {
+	if len(args) < 2 {
+		b := c.rr.Pick()
+		if b == "" {
+			return "NONE"
+		}
+		return b + " new"
+	} else {
+		status, ok := c.state[args[1]]
+		if !ok || status == "DOWN" {
+			b := c.rr.Pick()
+			if b == "" {
+				return "NONE"
 			}
+			return b + " new"
+		} else {
+			return args[1] + " sticky"
 		}
-	}
-}
-
-// Get all backends (useful for debugging)
-func (ch *ConsistentHashing) GetBackends() []string {
-	seen := make(map[string]bool)
-	backends := make([]string, 0)
-	for _, key := range ch.keys {
-		if val := ch.vals[key]; !seen[val] {
-			seen[val] = true
-			backends = append(backends, val)
-		}
-	}
-	return backends
-}
-
-func hashString(s string) int {
-	h := 0
-	for _, c := range s {
-		h = (h*31 + int(c)) % 1000
-	}
-	return h
-}
-
-func (ch *ConsistentHashing) Ring() {
-	for _, k := range ch.keys {
-		fmt.Printf("%d:%s\n", k, string(ch.vals[k][0]))
 	}
 }
 
@@ -127,7 +95,7 @@ func main() {
 	// 	}
 	// }
 
-	// file, err := os.Open(fmt.Sprintf("tests/08-consistent-hashing/%d.in", test))
+	// file, err := os.Open(fmt.Sprintf("tests/09-sticky-sessions/%d.in", test))
 	// if err != nil {
 	// 	panic(err)
 	// }
@@ -135,7 +103,7 @@ func main() {
 	// sc := bufio.NewScanner(file)
 	sc := bufio.NewScanner(os.Stdin)
 	sc.Buffer(make([]byte, 1024*1024), 1024*1024)
-	var lb *ConsistentHashing
+	var lb *CS
 	for sc.Scan() {
 		if sc.Err() != nil {
 			panic("error in scaning")
@@ -147,18 +115,16 @@ func main() {
 		args := strings.Split(line, " ")
 		switch args[0] {
 		case "POOL":
-			lb = NewConsistentHashing(args[1:])
+			lb = NewCS(args[1:])
 			fmt.Println("OK")
-		case "ADD":
-			lb.Add(args[1:])
-			fmt.Println("OK")
-		case "LOOKUP":
-			ans := lb.LookUp(args[1])
+		case "REQUEST":
+			ans := lb.Request(args[1:])
 			fmt.Println(ans)
-		case "RING":
-			lb.Ring()
-		case "REMOVE":
-			lb.Remove(args[1])
+		case "UP":
+			lb.ChangeState(args[1:], "UP")
+			fmt.Println("OK")
+		case "DOWN":
+			lb.ChangeState(args[1:], "DOWN")
 			fmt.Println("OK")
 		default:
 			fmt.Println("wrong input:", args[0])
