@@ -1,12 +1,6 @@
-package main
+package load_balancer
 
-import (
-	"bufio"
-	"fmt"
-	"os"
-	"strconv"
-	"strings"
-)
+import "strings"
 
 type L4 struct {
 	backends []string
@@ -21,14 +15,6 @@ func NewL4(backends []string) *L4 {
 func (l *L4) L4(ip, port string) string {
 	index := hashString(ip+":"+port) % len(l.backends)
 	return l.backends[index]
-}
-
-func hashString(s string) int {
-	h := 0
-	for _, c := range s {
-		h = (h*31 + int(c)) % 1000
-	}
-	return h
 }
 
 type Route struct {
@@ -127,57 +113,4 @@ func (l7 *L7) L7_(host, path string) string {
 	}
 
 	return bestUpstream
-}
-
-func main() {
-	// var test int
-	// var err error
-	// if len(os.Args) < 2 {
-	// 	test = 2
-	// } else {
-	// 	test, err = strconv.Atoi(os.Args[1])
-	// 	if err != nil {
-	// 		panic("wrong arguman")
-	// 	}
-	// }
-
-	// file, err := os.Open(fmt.Sprintf("tests/12-l4-vs-l7/%d.in", test))
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer file.Close()
-	// sc := bufio.NewScanner(file)
-	sc := bufio.NewScanner(os.Stdin)
-	sc.Buffer(make([]byte, 1024*1024), 1024*1024)
-	var l4 *L4
-	l7 := NewL7()
-	for sc.Scan() {
-		if sc.Err() != nil {
-			panic("error in scaning")
-		}
-		line := sc.Text()
-		if line == "" {
-			continue
-		}
-		args := strings.Split(line, " ")
-		switch args[0] {
-		case "POOL4":
-			l4 = NewL4(args[1:])
-			fmt.Println("OK")
-		case "L4":
-			ans := l4.L4(args[1], args[2])
-			fmt.Println(ans)
-		case "ROUTE":
-			l7.AddRoute(args[1], args[2], args[3])
-			fmt.Println("OK")
-		case "DEFAULT":
-			l7.Default(args[1])
-			fmt.Println("OK")
-		case "L7":
-			ans := l7.L7_(args[1], args[2])
-			fmt.Println(ans)
-		default:
-			fmt.Println("Wrong argument:", args[0])
-		}
-	}
 }
