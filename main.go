@@ -68,64 +68,46 @@ func (l7 *L7) Default(def string) {
 }
 
 func (l7 *L7) L7_(host, path string) string {
-	// Get routes for this host
-	routes := l7.routesByHost[host]
-
-	// First try to find a match in host-specific routes
-	bestUpstream := ""
-	bestLen := 0
-
-	if len(routes) > 0 {
-		for _, route := range routes {
-			prefix := route.prefix
-
-			// Check if path starts with this prefix
-			if strings.HasPrefix(path, prefix) || prefix == "" {
-				length := len(prefix)
-
-				// Exact match gets priority
-				if prefix == path {
-					length += 1000
-				}
-
-				if length > bestLen {
-					bestLen = length
-					bestUpstream = route.upStream
-				}
-			}
-		}
-
-		// If we found a match in host-specific routes, return it
-		if bestUpstream != "" {
-			return bestUpstream
-		}
-	}
-
-	// If no host-specific match found, try wildcard routes
-	for _, route := range l7.wildcardRoutes {
-		prefix := route.prefix
-
-		// Check if path starts with this prefix
-		if strings.HasPrefix(path, prefix) || prefix == "" {
-			length := len(prefix)
-
-			// Exact match gets priority
-			if prefix == path {
-				length += 1000
-			}
-
-			if length > bestLen {
-				bestLen = length
-				bestUpstream = route.upStream
-			}
-		}
-	}
-
-	if bestUpstream == "" {
-		return l7.def
-	}
-
-	return bestUpstream
+    // Get routes for this host
+    routes := l7.routesByHost[host]
+    
+    // If no exact host match, try wildcard routes
+    if len(routes) == 0 {
+        routes = l7.wildcardRoutes
+    }
+    
+    if len(routes) == 0 {
+        return l7.def
+    }
+    
+    // Find longest prefix match
+    var bestUpstream string
+    bestLen := 0
+    
+    for _, route := range routes {
+        prefix := route.prefix
+        
+        // Check if path starts with this prefix
+        if strings.HasPrefix(path, prefix) || prefix == "" {
+            length := len(prefix)
+            
+            // Exact match gets priority
+            if prefix == path {
+                length += 1000
+            }
+            
+            if length > bestLen {
+                bestLen = length
+                bestUpstream = route.upStream
+            }
+        }
+    }
+    
+    if bestUpstream == "" {
+        return l7.def
+    }
+    
+    return bestUpstream
 }
 
 func main() {
