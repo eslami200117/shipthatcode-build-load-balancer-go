@@ -1,4 +1,5 @@
 package load_balancer
+
 type CS struct {
 	rr            RoundRobin
 	state         map[string]string

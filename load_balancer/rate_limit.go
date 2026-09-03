@@ -1,12 +1,8 @@
-package main
+package load_balancer
 
 import (
-	"bufio"
 	"fmt"
 	"math"
-	"os"
-	"strconv"
-	"strings"
 )
 
 type RateLimit struct {
@@ -62,47 +58,4 @@ func (r *RateLimit) Request(b string) string {
 
 func (r *RateLimit) Status(b string) {
 	fmt.Printf("%.2f\n", r.status[b].token)
-}
-
-func main() {
-	// var test int
-	// var err error
-	// if len(os.Args) < 2 {
-	// 	test = 2
-	// } else {
-	// 	test, err = strconv.Atoi(os.Args[1])
-	// 	if err != nil {
-	// 		panic("wrong arguman")
-	// 	}
-	// }
-
-	// file, err := os.Open(fmt.Sprintf("tests/10-rate-limiting/%d.in", test))
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer file.Close()
-	// sc := bufio.NewScanner(file)
-	sc := bufio.NewScanner(os.Stdin)
-	sc.Buffer(make([]byte, 1024*1024), 1024*1024)
-	lb := NewRateLimit()
-	for sc.Scan() {
-		if sc.Err() != nil {
-			panic("error in scaning")
-		}
-		line := sc.Text()
-		if line == "" {
-			continue
-		}
-		args := strings.Split(line, " ")
-		switch args[0] {
-		case "NOW":
-			lb.Now(args[1])
-			fmt.Println("OK")
-		case "REQUEST":
-			ans := lb.Request(args[1])
-			fmt.Println(ans)
-		case "STATUS":
-			lb.Status(args[1])
-		}
-	}
 }
