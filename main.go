@@ -49,6 +49,11 @@ func NewL7() *L7 {
 	}
 }
 
+
+func (l7 *L7) Default(def string) {
+	l7.def = def
+}
+
 func (l7 *L7) AddRoute(host, prefix, upStream string) {
 	route := Route{
 		host:     host,
@@ -57,57 +62,91 @@ func (l7 *L7) AddRoute(host, prefix, upStream string) {
 	}
 
 	if host == "*" {
+		// Check if wildcard route with same prefix exists, replace it
+		for i, r := range l7.wildcardRoutes {
+			if r.prefix == prefix {
+				l7.wildcardRoutes[i] = route
+				return
+			}
+		}
 		l7.wildcardRoutes = append(l7.wildcardRoutes, route)
 	} else {
+		// Check if route with same host and prefix exists, replace it
+		for i, r := range l7.routesByHost[host] {
+			if r.prefix == prefix {
+				l7.routesByHost[host][i] = route
+				return
+			}
+		}
 		l7.routesByHost[host] = append(l7.routesByHost[host], route)
 	}
 }
 
-func (l7 *L7) Default(def string) {
-	l7.def = def
-}
-
 func (l7 *L7) L7_(host, path string) string {
-    // Get routes for this host
-    routes := l7.routesByHost[host]
-    
-    // If no exact host match, try wildcard routes
-    if len(routes) == 0 {
-        routes = l7.wildcardRoutes
-    }
-    
-    if len(routes) == 0 {
-        return l7.def
-    }
-    
-    // Find longest prefix match
-    var bestUpstream string
-    bestLen := 0
-    
-    for _, route := range routes {
-        prefix := route.prefix
-        
-        // Check if path starts with this prefix
-        if strings.HasPrefix(path, prefix) || prefix == "" {
-            length := len(prefix)
-            
-            // Exact match gets priority
-            if prefix == path {
-                length += 1000
-            }
-            
-            if length > bestLen {
-                bestLen = length
-                bestUpstream = route.upStream
-            }
-        }
-    }
-    
-    if bestUpstream == "" {
-        return l7.def
-    }
-    
-    return bestUpstream
+	// Get routes for this host
+	routes := l7.routesByHost[host]
+
+	// First try to find a match in host-specific routes (in reverse order for latest wins)
+	bestUpstream := ""
+	bestLen := 0
+	
+	if len(routes) > 0 {
+		// Iterate in reverse order so newer routes override older ones
+		for i := len(routes) - 1; i >= 0; i-- {
+			route := routes[i]
+			prefix := route.prefix
+			
+			// Check if path starts with this prefix
+			if strings.HasPrefix(path, prefix) || prefix == "" {
+				length := len(prefix)
+				
+				// Exact match gets priority
+				if prefix == path {
+					length += 1000
+				}
+				
+				if length >= bestLen {
+					bestLen = length
+					bestUpstream = route.upStream
+				}
+			}
+		}
+		
+		// If we found a match in host-specific routes, return it
+		if bestUpstream != "" {
+			return bestUpstream
+		}
+	}
+
+	// If no host-specific match found, try wildcard routes (in reverse order)
+	bestLen = 0
+	bestUpstream = ""
+	
+	for i := len(l7.wildcardRoutes) - 1; i >= 0; i-- {
+		route := l7.wildcardRoutes[i]
+		prefix := route.prefix
+		
+		// Check if path starts with this prefix
+		if strings.HasPrefix(path, prefix) || prefix == "" {
+			length := len(prefix)
+			
+			// Exact match gets priority
+			if prefix == path {
+				length += 1000
+			}
+			
+			if length >= bestLen {
+				bestLen = length
+				bestUpstream = route.upStream
+			}
+		}
+	}
+
+	if bestUpstream == "" {
+		return l7.def
+	}
+
+	return bestUpstream
 }
 
 func main() {
