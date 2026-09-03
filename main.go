@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -64,19 +65,30 @@ func (c *CS) Rest() {
 
 func (c *CS) Request(args []string) string {
 	if len(args) < 2 {
-		b := c.rr.Pick()
-		if b == "" {
-			return "NONE"
-		}
-		return b + " new"
-	} else {
-		status, ok := c.state[args[1]]
-		if !ok || status == "DOWN" {
+		for range c.state {
 			b := c.rr.Pick()
 			if b == "" {
 				return "NONE"
 			}
-			return b + " new"
+			if c.state[b] == "UP" {
+				return b + " new"
+			}
+		}
+
+		return "NONE"
+	} else {
+		status, ok := c.state[args[1]]
+		if !ok || status == "DOWN" {
+			for range c.state {
+				b := c.rr.Pick()
+				if b == "" {
+					return "NONE"
+				}
+				if c.state[b] == "UP" {
+					return b + " new"
+				}
+			}
+			return "NONE"
 		} else {
 			return args[1] + " sticky"
 		}
@@ -87,7 +99,7 @@ func main() {
 	// var test int
 	// var err error
 	// if len(os.Args) < 2 {
-	// 	test = 2
+	// 	test = 1
 	// } else {
 	// 	test, err = strconv.Atoi(os.Args[1])
 	// 	if err != nil {

@@ -1,5 +1,4 @@
 package load_balancer
-
 type CS struct {
 	rr            RoundRobin
 	state         map[string]string
@@ -31,19 +30,30 @@ func (c *CS) Rest() {
 
 func (c *CS) Request(args []string) string {
 	if len(args) < 2 {
-		b := c.rr.Pick()
-		if b == "" {
-			return "NONE"
-		}
-		return b + " new"
-	} else {
-		status, ok := c.state[args[1]]
-		if !ok || status == "DOWN" {
+		for range c.state {
 			b := c.rr.Pick()
 			if b == "" {
 				return "NONE"
 			}
-			return b + " new"
+			if c.state[b] == "UP" {
+				return b + " new"
+			}
+		}
+
+		return "NONE"
+	} else {
+		status, ok := c.state[args[1]]
+		if !ok || status == "DOWN" {
+			for range c.state {
+				b := c.rr.Pick()
+				if b == "" {
+					return "NONE"
+				}
+				if c.state[b] == "UP" {
+					return b + " new"
+				}
+			}
+			return "NONE"
 		} else {
 			return args[1] + " sticky"
 		}
