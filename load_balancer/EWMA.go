@@ -1,13 +1,10 @@
-package main
+package load_balancer
 
 import (
-	"bufio"
 	"fmt"
 	"math"
-	"os"
 	"sort"
 	"strconv"
-	"strings"
 )
 
 type EWMA struct {
@@ -58,51 +55,5 @@ func (e *EWMA) Status() {
 	sort.Strings(e.backends)
 	for _, b := range e.backends {
 		fmt.Printf("%s:%d\n", b, int(math.Round(e.state[b])))
-	}
-}
-
-func main() {
-	// var test int
-	// var err error
-	// if len(os.Args) < 2 {
-	// 	test = 2
-	// } else {
-	// 	test, err = strconv.Atoi(os.Args[1])
-	// 	if err != nil {
-	// 		panic("wrong arguman")
-	// 	}
-	// }
-
-	// file, err := os.Open(fmt.Sprintf("tests/11-ewma/%d.in", test))
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer file.Close()
-	// sc := bufio.NewScanner(file)
-	sc := bufio.NewScanner(os.Stdin)
-	sc.Buffer(make([]byte, 1024*1024), 1024*1024)
-	var lb *EWMA
-	for sc.Scan() {
-		if sc.Err() != nil {
-			panic("error in scaning")
-		}
-		line := sc.Text()
-		if line == "" {
-			continue
-		}
-		args := strings.Split(line, " ")
-		switch args[0] {
-		case "POOL":
-			lb = NewEWMA(args[1:])
-			fmt.Println("OK")
-		case "RECORD":
-			lb.Record(args[1], args[2])
-			fmt.Println("OK")
-		case "PICK":
-			ans := lb.Pick()
-			fmt.Println(ans)
-		case "STATUS":
-			lb.Status()
-		}
 	}
 }
