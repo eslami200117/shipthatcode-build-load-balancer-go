@@ -1,9 +1,7 @@
-package main
+package load_balancer
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -121,57 +119,4 @@ func (m *Metric) Metrics() string {
 	}
 
 	return output.String()
-}
-
-func main() {
-	// var test int
-	// var err error
-	// if len(os.Args) < 2 {
-	// 	test = 2
-	// } else {
-	// 	test, err = strconv.Atoi(os.Args[1])
-	// 	if err != nil {
-	// 		panic("wrong arguman")
-	// 	}
-	// }
-
-	// file, err := os.Open(fmt.Sprintf("tests/14-metrics/%d.in", test))
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer file.Close()
-	// sc := bufio.NewScanner(file)
-	sc := bufio.NewScanner(os.Stdin)
-	sc.Buffer(make([]byte, 1024*1024), 1024*1024)
-	var lb = NewMetric()
-
-	for sc.Scan() {
-		if sc.Err() != nil {
-			panic("error in scaning")
-		}
-		line := sc.Text()
-		if line == "" {
-			continue
-		}
-		args := strings.Split(line, " ")
-		switch args[0] {
-		case "POOL":
-			lb.Pool(args[1:]...)
-			fmt.Println("OK")
-		case "REQUEST":
-			lb.Request(args[1], args[2], args[3])
-			fmt.Println("OK")
-		case "BYTES":
-			lb.Bytes(args[1], args[2], args[3])
-			fmt.Println("OK")
-		case "HEALTH":
-			lb.Health(args[1], args[2])
-			fmt.Println("OK")
-		case "METRICS":
-			ans := lb.Metrics()
-			fmt.Println(ans)
-		default:
-			fmt.Println("Wrong argument:", args[0])
-		}
-	}
 }
